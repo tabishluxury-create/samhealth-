@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Doctor Dashboard - Patient Management</title>
+    <link rel="stylesheet" href="doctor-details-dashboard.css">
+    <link rel="stylesheet" href="site-motion.css?v=20261005">
+    <script src="api.js"></script>
+</head>
+<body>
+    <main class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="doctor-avatar doctor-avatar-large" aria-hidden="true">DR</div>
+            <h1>Doctor Portal</h1>
+            <p class="credentials">Manage patients & appointments</p>
+            <div class="sidebar-rule"></div>
+            <nav aria-label="Doctor Dashboard navigation">
+                <a class="active" href="#dashboard"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg></span>Dashboard</a>
+                <a href="#patientListModal" onclick="openPatientList(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0M16 5a3.5 3.5 0 0 1 0 6.8M17 14a5.7 5.7 0 0 1 4.2 5.5"/></svg></span>Patients List</a>
+                <a href="#today-appointments" onclick="openTodayAppointments(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3"/></svg></span>Today's Appointments</a>
+                <a href="#patient-details" onclick="openPatientSearch(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/></svg></span>Search Patient</a>
+                <a href="#schedule" onclick="openSchedule(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>My Schedule</a>
+                <a href="#reports" onclick="openReports(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg></span>Reports</a>
+                <div class="sidebar-settings-label">ACCOUNT SETTINGS</div>
+                <a class="sidebar-settings-link" href="#my-details" onclick="openMyDetails(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>My Details</a>
+                <a class="sidebar-settings-link" href="#security-settings" onclick="openSecuritySettings(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg></span>Two-step Verification</a>
+                <a class="sidebar-settings-link" href="#password-settings" onclick="openPasswordSettings(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9 2 2-2 2 2 2-3 3-2-2-3 3"/></svg></span>Change Password / PIN</a>
+                <a href="loginround2.html"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></span>Logout</a>
+            </nav>
+        </aside>
+
+        <section class="workspace" id="dashboard">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">WELCOME DOCTOR</p>
+                    <h2>Patient Management Dashboard</h2>
+                </div>
+                <div class="topbar-tools">
+                    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+                        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+                        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.7 8.7 0 1 0 20.4 15.3Z"/></svg>
+                        <span class="theme-toggle-label">Light mode</span>
+                    </button>
+                    <button class="notification-button" type="button" aria-label="Notifications" title="Notifications">
+                        <span class="bell-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>
+                        <span class="notification-count" id="notificationCount" hidden>0</span>
+                    </button>
+                </div>
+            </header>
+            <aside class="notification-panel" id="notificationPanel" hidden>
+                <div class="notification-panel-heading"><strong>Notifications</strong><button type="button" id="markNotificationsRead">Mark read</button></div>
+                <div id="notificationList"><p>No notifications yet.</p></div>
+            </aside>
+
+            <section class="welcome-hero" aria-label="Doctor dashboard overview">
+                <div class="welcome-copy">
+                    <p class="hero-kicker">YOUR CARE TEAM, AT A GLANCE</p>
+                    <h2>Better care starts with a clear view.</h2>
+                    <p>Stay on top of appointments, patient progress, and the work that needs your attention.</p>
+                    <button type="button" onclick="openTodayAppointments()">View today's schedule <span aria-hidden="true">→</span></button>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                    <span class="hero-orbit hero-orbit-one"></span>
+                    <span class="hero-orbit hero-orbit-two"></span>
+                    <svg viewBox="0 0 220 180" role="presentation">
+                        <circle cx="110" cy="90" r="78" fill="none" stroke="rgba(220,255,250,.16)" stroke-width="1"/>
+                        <circle class="hero-art-spark" cx="43" cy="50" r="4" fill="#c4fff1"/>
+                        <circle class="hero-art-spark hero-art-spark-late" cx="184" cy="126" r="3" fill="#c4d7ff"/>
+                        <path d="M36 72h10m-5-5v10M177 72h12m-6-6v12" stroke="rgba(225,255,250,.8)" stroke-width="2" stroke-linecap="round"/>
+                        <g class="hero-art-capsule" transform="rotate(-35 183 43)">
+                            <rect x="170" y="35" width="28" height="12" rx="6" fill="#c2fff0" fill-opacity=".92"/>
+                            <path d="M184 35v12" stroke="#168b82" stroke-width="2"/>
+                        </g>
+                        <rect x="48" y="28" width="124" height="124" rx="34" fill="rgba(255,255,255,.16)"/>
+                        <rect x="43" y="23" width="134" height="134" rx="39" fill="none" stroke="rgba(229,255,249,.24)" stroke-width="1.5"/>
+                        <path d="M110 52v76M72 90h76" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+                        <circle cx="168" cy="48" r="17" fill="#a9f0df"/>
+                        <path d="m160 48 5 5 10-11" fill="none" stroke="#155b64" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M36 132h31l12-20 16 35 15-26 10 11h42" fill="none" stroke="#b5f6e7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </section>
+
+            <section class="metrics" aria-label="Summary metrics">
+                <button class="metric metric-action" type="button" onclick="openTodayAppointments()">
+                    <div class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3"/></svg></div>
+                    <div>
+                        <span>Today's Appointments</span>
+                        <strong id="doctorTodayAppointmentCount">0</strong>
+                        <small>Scheduled</small>
+                    </div>
+                </button>
+                <button class="metric metric-action" type="button" onclick="openPatientList()">
+                    <div class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0M16 5a3.5 3.5 0 0 1 0 6.8M17 14a5.7 5.7 0 0 1 4.2 5.5"/></svg></div>
+                    <div>
+                        <span>Total Patients</span>
+                        <strong id="doctorPatientCount">0</strong>
+                        <small>Under your care</small>
+                    </div>
+                </button>
+                <button class="metric metric-action" type="button" onclick="openPendingReports()">
+                    <div class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6v3H9zM9 12h6M9 16h6"/></svg></div>
+                    <div>
+                        <span>Pending Reports</span>
+                        <strong>5</strong>
+                        <small>To be reviewed</small>
+                    </div>
+                </button>
+            </section>
+
+            <!-- Patient Details Section -->
+            <article class="patient-info-panel panel" id="patient-details">
+                <div class="section-heading">
+                    <p class="panel-title">Patient Information</p>
+                    <button class="btn-small appointment-cancel-button" id="cancelPatientAppointment" type="button" disabled>
+                        Cancel ongoing appointment
+                    </button>
+                </div>
+                <div class="patient-card">
+                    <div class="patient-header">
+                        <div class="patient-avatar" id="patientAvatar" aria-hidden="true">--</div>
+                        <div class="patient-meta">
+                            <h3 id="patientInfoDisplayName">Select a patient</h3>
+                            <span class="patient-id-badge" id="patientInfoId">—</span>
+                        </div>
+                    </div>
+                    <div class="patient-quick-facts" aria-label="Patient summary">
+                        <span><strong>Age</strong><span id="patientInfoDisplayAge">—</span></span>
+                        <span><strong>Gender</strong><span id="patientInfoDisplayGender">—</span></span>
+                        <span><strong>Contact</strong><span id="patientInfoDisplayPhone">—</span></span>
+                    </div>
+                    <div class="patient-history-summary">
+                        <strong>Medical history</strong>
+                        <p id="patientInfoHistorySummary">No medical history recorded.</p>
+                    </div>
+                    <div class="patient-info-actions">
+                        <button class="btn-primary" type="button" onclick="openNewPrescription()">Prescription</button>
+                        <button class="btn-secondary" type="button" onclick="openNewReport()">Add report</button>
+                        <button class="btn-secondary" type="button" id="nextPatient">Next Patient</button>
+                    </div>
+                    <p id="patientInfoMessage" role="status"></p>
+                </div>
+            </article>
+
+            <!-- Today's Appointments Section -->
+            <article class="appointments-panel panel" id="today-appointments">
+                <div class="section-heading">
+                    <div>
+                        <p class="panel-title">Today's Appointments</p>
+                        <h3 id="appointmentsDateHeading">Loading schedule...</h3>
+                    </div>
+                    <div class="today-appointment-actions">
+                        <button type="button" class="btn-small" id="completeAllTodayButton" onclick="openCompleteTodayConfirmation()" disabled>Complete all today</button>
+                        <button type="button" class="btn-secondary" onclick="openTodayAppointments()">View All</button>
+                    </div>
+                </div>
+                <div class="appointments-list" id="doctorAppointmentsList">
+                    <p class="appointment-empty">Loading appointments…</p>
+                </div>
+                <p class="appointment-action-message" id="appointmentActionMessage" role="status"></p>
+            </article>
+
+            <article class="account-settings-panel panel" id="my-details" hidden>
+                <button class="settings-popup-close" type="button" onclick="closeAccountPopup('my-details')">×</button>
+                <div class="section-heading"><p class="panel-title">My Details</p></div>
+                <p class="settings-popup-intro">Name and phone are required. Other profile fields are optional; leaving one blank keeps its current value.</p>
+                <form id="profileForm" class="profile-form">
+                    <label>Name<input id="profileName" required></label>
+                    <label>Phone<input id="profilePhone" type="tel" required></label>
+                    <label>Email<input id="profileEmail" type="email"></label>
+                    <label>Doctor type<input id="profileDoctorType"></label>
+                    <label>License number<input id="profileLicenseNumber"></label>
+                    <label>Department<input id="profileDepartment"></label>
+                    <label>Specialization<input id="profileSpecialization"></label>
+                    <label>Qualification<input id="profileQualification"></label>
+                    <label>Experience<input id="profileExperience" type="number" min="0"></label>
+                    <label>Hospital or clinic<input id="profileHospital"></label>
+                    <label>Clinic address<input id="profileAddress"></label>
+                    <button class="btn-primary profile-save-button" type="submit">Save Updates</button>
+                    <p id="profileStatus" role="status"></p>
+                </form>
+            </article>
+
+            <article class="account-settings-panel panel" id="security-settings" hidden>
+                <button class="settings-popup-close" type="button" onclick="closeAccountPopup('security-settings')">×</button>
+                <div class="section-heading"><p class="panel-title">Two-step Password Verification</p></div>
+                <p class="settings-popup-intro">Use the PIN for simple login. Enable this option to request your account password in a popup after the PIN.</p>
+                <label class="security-toggle"><input id="twoStepToggle" type="checkbox"> Enable password verification after PIN</label>
+                <p id="securityStatus" role="status"></p>
+            </article>
+
+            <article class="account-settings-panel panel" id="password-settings" hidden>
+                <button class="settings-popup-close" type="button" onclick="closeAccountPopup('password-settings')">×</button>
+                <div class="section-heading"><p class="panel-title">Change Password / PIN</p></div>
+                <p class="settings-popup-intro">Update the password used on the login page and your optional security PIN.</p>
+                <form id="passwordForm" class="profile-form">
+                    <label>Current password<input id="currentPassword" type="password" required></label>
+                    <label>New password<input id="newPassword" type="password" minlength="8" required></label>
+                    <label>Confirm new password<input id="confirmNewPassword" type="password" minlength="8" required></label>
+                    <button class="btn-primary" type="submit">Change Login Password</button>
+                </form>
+                <div class="password-pin-divider"></div>
+                <label class="security-otp-label">New security PIN<input id="passwordPopupPin" type="password" inputmode="numeric" maxlength="4" placeholder="4 digits"></label>
+                <label class="security-otp-label">Confirm security PIN<input id="passwordPopupPinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Repeat PIN"></label>
+                <button class="btn-secondary" id="savePopupPin" type="button">Change Security PIN</button>
+                <p id="passwordStatus" role="status"></p>
+            </article>
+
+        </section>
+    </main>
+
+    <div class="modal-overlay clinical-modal" id="prescriptionModal" hidden>
+        <section class="modal-content clinical-modal-content" role="dialog" aria-modal="true" aria-labelledby="prescriptionTitle">
+            <button class="modal-close" type="button" aria-label="Close prescription" onclick="closeClinicalModal('prescriptionModal')">×</button>
+            <div class="modal-header">
+                <h2 id="prescriptionTitle">Create prescription</h2>
+                <p>For <strong class="clinical-patient-name"></strong></p>
+                <span class="modal-art modal-art-prescription" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><rect x="11" y="7" width="26" height="34" rx="6"/><path d="M18 16h12M18 22h12M18 29h5"/><path d="M31 29v9m-4.5-4.5h9"/></svg>
+                </span>
+            </div>
+            <form class="clinical-form" id="prescriptionForm">
+                <label>Medicine name<input id="prescriptionMedicine" required autocomplete="off"></label>
+                <label>Dosage<input id="prescriptionDosage" required placeholder="For example, 500 mg"></label>
+                <label>Frequency<input id="prescriptionFrequency" required placeholder="For example, twice daily"></label>
+                <label>Duration<input id="prescriptionDuration" required placeholder="For example, 7 days"></label>
+                <p class="clinical-form-status" id="prescriptionFormStatus" role="status"></p>
+                <div class="clinical-form-actions">
+                    <button class="btn-primary" type="submit">Save prescription</button>
+                    <button class="btn-secondary" type="button" onclick="closeClinicalModal('prescriptionModal')">Cancel</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal-overlay clinical-modal" id="reportModal" hidden>
+        <section class="modal-content clinical-modal-content" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+            <button class="modal-close" type="button" aria-label="Close report form" onclick="closeClinicalModal('reportModal')">×</button>
+            <div class="modal-header">
+                <h2 id="reportTitle">Add lab report</h2>
+                <p>For <strong class="clinical-patient-name"></strong></p>
+                <span class="modal-art modal-art-report" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><path d="M15 7h13l8 8v25H15a4 4 0 0 1-4-4V11a4 4 0 0 1 4-4Z"/><path d="M27 7v9h9M18 24h12M18 30h12M18 36h7"/></svg>
+                </span>
+            </div>
+            <form class="clinical-form" id="reportForm">
+                <label>Report type<input id="reportType" required autocomplete="off" placeholder="For example, blood test"></label>
+                <label>Results or notes<textarea id="reportData" rows="4" required></textarea></label>
+                <p class="clinical-form-status" id="reportFormStatus" role="status"></p>
+                <div class="clinical-form-actions">
+                    <button class="btn-primary" type="submit">Save report</button>
+                    <button class="btn-secondary" type="button" onclick="closeClinicalModal('reportModal')">Cancel</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="patientListModal" hidden>
+        <section class="modal-content patient-list-modal" role="dialog" aria-modal="true" aria-labelledby="patientListTitle">
+            <button class="modal-close" type="button" aria-label="Close patients list" onclick="closePatientList()">×</button>
+            <div class="modal-header">
+                <h2 id="patientListTitle">Patients List</h2>
+                <input type="search" id="patientListSearch" class="search-input" placeholder="Search by name or ID">
+                <span class="modal-art modal-art-patients" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><circle cx="19" cy="17" r="7"/><path d="M6 39a13 13 0 0 1 26 0M33 13a6 6 0 0 1 0 12M34 30a10 10 0 0 1 8 9"/></svg>
+                </span>
+            </div>
+            <div class="modal-body">
+                <div class="patients-table" id="patientsTable" aria-live="polite">
+                    <p class="appointment-empty">Loading patients...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="patientVisitsModal" hidden>
+        <section class="modal-content patient-visits-modal" role="dialog" aria-modal="true" aria-labelledby="patientVisitsTitle">
+            <button class="modal-close" type="button" aria-label="Close visit history" onclick="closePatientVisits()">×</button>
+            <div class="modal-header">
+                <h2 id="patientVisitsTitle">Completed visits</h2>
+                <p id="patientVisitsPatientName"></p>
+                <span class="modal-art modal-art-visits" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><rect x="8" y="11" width="32" height="30" rx="6"/><path d="M16 7v8m16-8v8M8 20h32M16 27h6m4 0 3 3 6-7"/></svg>
+                </span>
+            </div>
+            <div class="modal-body">
+                <div class="completed-visits-list" id="completedVisitsList" aria-live="polite">
+                    <p class="appointment-empty">Loading completed visits…</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="completeTodayModal" hidden>
+        <section class="modal-content complete-today-modal" role="dialog" aria-modal="true" aria-labelledby="completeTodayTitle">
+            <button class="modal-close" type="button" aria-label="Cancel completing today's appointments" onclick="closeCompleteTodayConfirmation()">×</button>
+            <div class="modal-header">
+                <h2 id="completeTodayTitle">Complete today's appointments?</h2>
+                <p id="completeTodayWarning" role="alert"></p>
+                <span class="modal-art modal-art-confirm" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"/><path d="m15 24 6 6 12-13"/></svg>
+                </span>
+            </div>
+            <form id="completeTodayForm" class="complete-today-form">
+                <label for="completeTodayPin">Doctor security PIN</label>
+                <input id="completeTodayPin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" required>
+                <div class="complete-today-actions">
+                    <button class="btn-secondary" type="button" onclick="closeCompleteTodayConfirmation()">Cancel</button>
+                    <button class="btn-primary" type="submit">Confirm and complete all</button>
+                </div>
+                <p id="completeTodayStatus" class="clinical-form-status" role="status"></p>
+            </form>
+        </section>
+    </div>
+
+    <div class="visit-save-toast" id="visitSaveToast" role="status" aria-live="polite" hidden></div>
+
+    <!-- Patient Detail Modal -->
+    <div class="modal-overlay" id="patientDetailModal" hidden>
+        <section class="modal-content patient-detail-modal" role="dialog" aria-modal="true">
+            <button class="modal-close" type="button" aria-label="Close modal" onclick="closePatientDetail()">×</button>
+            <div class="modal-header">
+                <h2>Patient Details</h2>
+                <span class="modal-art modal-art-patients" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><circle cx="19" cy="17" r="7"/><path d="M6 39a13 13 0 0 1 26 0M33 13a6 6 0 0 1 0 12M34 30a10 10 0 0 1 8 9"/></svg>
+                </span>
+            </div>
+            <div class="modal-body">
+                <div class="patient-detail-section">
+                    <h3>Personal Information</h3>
+                    <div class="info-grid">
+                        <div><strong>Full Name:</strong> <span id="patientName">-</span></div>
+                        <div><strong>Patient ID:</strong> <span id="patientID">-</span></div>
+                        <div><strong>Gender:</strong> <span>Male</span></div>
+                    </div>
+                </div>
+
+                <div class="patient-detail-section">
+                    <h3>Contact Information</h3>
+                    <div class="info-grid">
+                        <div><strong>Phone:</strong> <span>+91 98765 43210</span></div>
+                        <div><strong>Email:</strong> <span>sanath.deo@example.com</span></div>
+                        <div><strong>Address:</strong> <span>New Delhi, India</span></div>
+                    </div>
+                </div>
+
+                <div class="patient-detail-section">
+                    <h3>Medical History</h3>
+                    <ul class="medical-list">
+                        <li>Hypertension (controlled)</li>
+                        <li>Diabetes Type 2</li>
+                        <li>Previous Appendectomy (2015)</li>
+                        <li>Drug Allergy: Penicillin</li>
+                    </ul>
+                </div>
+
+                <div class="patient-detail-section">
+                    <h3>Recent Visits</h3>
+                    <div class="visit-list">
+                        <div class="visit-item">
+                            <strong>21 December 2026</strong>
+                            <small>General Consultation - Dr. Name</small>
+                        </div>
+                        <div class="visit-item">
+                            <strong>15 December 2026</strong>
+                            <small>Follow-up Checkup - Dr. Name</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" type="button" onclick="closePatientDetail()">Close</button>
+                <button class="btn-primary" type="button" onclick="openNewPrescription()">Add Prescription</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Navigation functions
+        function openPatientList(e) {
+            if (e) e.preventDefault();
+            document.getElementById('patientListModal').hidden = false;
+            renderPatientList();
+        }
+
+        function closePatientList() {
+            document.getElementById('patientListModal').hidden = true;
+        }
+
+        function closePatientVisits() {
+            document.getElementById('patientVisitsModal').hidden = true;
+        }
+
+        function openTodayAppointments(e) {
+            if (e) e.preventDefault();
+            document.getElementById('today-appointments').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openPatientSearch(e) {
+            if (e) e.preventDefault();
+            document.getElementById('patient-details').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openSchedule(e) {
+            if (e) e.preventDefault();
+            alert('Schedule view coming soon');
+        }
+
+        function openReports(e) {
+            if (e) e.preventDefault();
+            alert('Reports view coming soon');
+        }
+
+        const accountRole = sessionStorage.getItem('samanRole') || 'doctor';
+        const accountIdentifier = sessionStorage.getItem('samanIdentifier') || '';
+        let securityChallengeId = '';
+
+        function openMyDetails(e) {
+            if (e) e.preventDefault();
+            document.getElementById('my-details').hidden = false;
+        }
+
+        function openSecuritySettings(e) {
+            if (e) e.preventDefault();
+            document.getElementById('security-settings').hidden = false;
+        }
+
+        function openPasswordSettings(e) {
+            if (e) e.preventDefault();
+            document.getElementById('password-settings').hidden = false;
+        }
+
+        function closeAccountPopup(id) {
+            document.getElementById(id).hidden = true;
+        }
+
+        async function loadAccountSettings() {
+            if (!accountIdentifier) return;
+            const profileResponse = await fetch(`${API.baseUrl}/profile`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get', role: accountRole, identifier: accountIdentifier })
+            });
+            if (profileResponse.ok) {
+                const profile = (await profileResponse.json()).profile;
+                document.getElementById('profileName').value = profile.name || '';
+                document.getElementById('profilePhone').value = profile.phone || '';
+                document.getElementById('profileEmail').value = profile.email || '';
+                document.getElementById('profileDoctorType').value = profile.doctor_type || '';
+                document.getElementById('profileLicenseNumber').value = profile.license_number || '';
+                document.getElementById('profileDepartment').value = profile.department || '';
+                document.getElementById('profileSpecialization').value = profile.specialization || '';
+                document.getElementById('profileQualification').value = profile.qualification || '';
+                document.getElementById('profileExperience').value = profile.experience || '';
+                document.getElementById('profileHospital').value = profile.hospital || '';
+                document.getElementById('profileAddress').value = profile.clinic_address || profile.address || '';
+            }
+            const securityResponse = await fetch(`${API.baseUrl}/security`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get', role: accountRole, identifier: accountIdentifier })
+            });
+            if (securityResponse.ok) {
+                document.getElementById('twoStepToggle').checked = (await securityResponse.json()).two_step_enabled;
+            }
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            try {
+                const response = await fetch(`${API.baseUrl}/profile`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                    action: 'update', role: accountRole, identifier: accountIdentifier,
+                    name: document.getElementById('profileName').value,
+                    phone: document.getElementById('profilePhone').value,
+                    email: document.getElementById('profileEmail').value,
+                    doctor_type: document.getElementById('profileDoctorType').value,
+                    license_number: document.getElementById('profileLicenseNumber').value,
+                    department: document.getElementById('profileDepartment').value,
+                    specialization: document.getElementById('profileSpecialization').value,
+                    qualification: document.getElementById('profileQualification').value,
+                    experience: document.getElementById('profileExperience').value,
+                    hospital: document.getElementById('profileHospital').value,
+                    clinic_address: document.getElementById('profileAddress').value
+                    })
+                });
+                const result = await response.json();
+                document.getElementById('profileStatus').textContent = response.ok
+                    ? 'Details updated successfully.'
+                    : (result.message || 'Could not update details. The phone number may already belong to another account.');
+            } catch (error) {
+                document.getElementById('profileStatus').textContent = 'Cannot connect to the Python backend.';
+            }
+        });
+
+        document.getElementById('twoStepToggle').addEventListener('change', async event => {
+            if (event.target.checked) {
+                document.getElementById('securityStatus').textContent = 'Password verification enabled after PIN.';
+            }
+            const response = await fetch(`${API.baseUrl}/security`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update', role: accountRole, identifier: accountIdentifier, enabled: event.target.checked })
+            });
+            document.getElementById('securityStatus').textContent = response.ok
+                ? 'Two-step verification setting saved.' : 'Could not save security setting.';
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            if (newPassword !== document.getElementById('confirmNewPassword').value) {
+                document.getElementById('passwordStatus').textContent = 'New passwords do not match.';
+                return;
+            }
+            const response = await fetch(`${API.baseUrl}/account-password`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    role: accountRole, identifier: accountIdentifier,
+                    current_password: document.getElementById('currentPassword').value,
+                    new_password: newPassword
+                })
+            });
+            const result = await response.json();
+            document.getElementById('passwordStatus').textContent = result.message;
+            if (response.ok) document.getElementById('passwordForm').reset();
+        });
+
+        document.getElementById('savePopupPin').addEventListener('click', async () => {
+            const pin = document.getElementById('passwordPopupPin').value;
+            const confirmation = document.getElementById('passwordPopupPinConfirm').value;
+            if (!/^\d{4}$/.test(pin) || pin !== confirmation) {
+                document.getElementById('passwordStatus').textContent = 'Enter matching 4-digit PINs.';
+                return;
+            }
+            const response = await fetch(`${API.baseUrl}/security/set-pin`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: accountRole, identifier: accountIdentifier, pin })
+            });
+            const result = await response.json();
+            document.getElementById('passwordStatus').textContent = result.message;
+            if (response.ok) {
+                document.getElementById('passwordPopupPin').value = '';
+                document.getElementById('passwordPopupPinConfirm').value = '';
+                document.getElementById('twoStepToggle').checked = true;
+            }
+        });
+
+        loadAccountSettings();
+
+        const doctorIdentifier = sessionStorage.getItem('samanIdentifier') || '';
+        let doctorAppointments = [];
+        let visitToastTimeout = null;
+        const notificationButton = document.querySelector('.notification-button');
+        const notificationPanel = document.getElementById('notificationPanel');
+        const notificationList = document.getElementById('notificationList');
+        const notificationCount = document.getElementById('notificationCount');
+        const themeToggle = document.getElementById('themeToggle');
+
+        function updateThemeToggle() {
+            const isLight = document.documentElement.dataset.theme === 'light';
+            const label = `${isLight ? 'Dark' : 'Light'} mode`;
+            themeToggle.setAttribute('aria-label', `Switch to ${label.toLowerCase()}`);
+            themeToggle.title = `Switch to ${label.toLowerCase()}`;
+            themeToggle.querySelector('.theme-toggle-label').textContent = label;
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+            document.documentElement.dataset.theme = nextTheme;
+            localStorage.setItem('doctor-dashboard-theme', nextTheme);
+            updateThemeToggle();
+        });
+        updateThemeToggle();
+
+        async function loadNotifications() {
+            if (!doctorIdentifier) return;
+            const response = await fetch(`${API.baseUrl}/notifications`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient_id: doctorIdentifier })
+            });
+            if (!response.ok) return;
+            const data = await response.json();
+            notificationCount.textContent = data.unread;
+            notificationCount.hidden = !data.unread;
+            notificationList.innerHTML = data.notifications.length
+                ? data.notifications.map(item => `<p class="notification-item">${item.message}<small>${new Date(item.created_at).toLocaleString()}</small></p>`).join('')
+                : '<p>No notifications yet.</p>';
+        }
+
+        notificationButton.addEventListener('click', () => {
+            notificationPanel.hidden = !notificationPanel.hidden;
+            if (!notificationPanel.hidden) loadNotifications();
+        });
+        document.getElementById('markNotificationsRead').addEventListener('click', async () => {
+            await fetch(`${API.baseUrl}/notifications`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark_read', recipient_id: doctorIdentifier }) });
+            loadNotifications();
+        });
+        loadNotifications();
+
+        function todayStamp() {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+
+        function showVisitSaveToast(message) {
+            const toast = document.getElementById('visitSaveToast');
+            toast.textContent = message;
+            toast.hidden = false;
+            clearTimeout(visitToastTimeout);
+            visitToastTimeout = setTimeout(() => {
+                toast.hidden = true;
+                toast.textContent = '';
+            }, 4000);
+        }
+
+        function openCompleteTodayConfirmation() {
+            const today = todayStamp();
+            const activeAppointments = doctorAppointments.filter(appointment =>
+                appointment.appointment_date === today
+                && !['completed', 'cancelled'].includes(appointment.status)
+            );
+            if (!activeAppointments.length) return;
+
+            document.getElementById('completeTodayWarning').textContent =
+                `This will mark all ${activeAppointments.length} active appointment(s) scheduled for today as completed. Already completed or cancelled appointments will not change. Please recheck before confirming.`;
+            document.getElementById('completeTodayStatus').textContent = '';
+            document.getElementById('completeTodayForm').reset();
+            document.getElementById('completeTodayModal').hidden = false;
+            document.getElementById('completeTodayPin').focus();
+        }
+
+        function closeCompleteTodayConfirmation() {
+            document.getElementById('completeTodayModal').hidden = true;
+            document.getElementById('completeTodayForm').reset();
+        }
+
+        async function loadDoctorAppointments() {
+            const list = document.getElementById('doctorAppointmentsList');
+            const heading = document.getElementById('appointmentsDateHeading');
+            heading.textContent = new Date().toLocaleDateString(undefined, {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            if (!doctorIdentifier) {
+                list.innerHTML = '<p class="appointment-empty">Sign in as a doctor to view appointments.</p>';
+                return;
+            }
+
+            let appointments;
+            try {
+                appointments = await API.getAppointmentsByDoctor(doctorIdentifier);
+            } catch (error) {
+                console.error('Could not refresh the doctor appointment schedule:', error);
+                list.innerHTML = '<p class="appointment-empty">Unable to load appointments. Check your connection and retry.</p>';
+                return;
+            }
+            doctorAppointments = appointments;
+            syncCancelPatientAppointmentButton();
+            const todaysAppointments = doctorAppointments
+                .filter(appointment => appointment.appointment_date === todayStamp())
+                .sort((first, second) => Number(first.token_number) - Number(second.token_number));
+            document.getElementById('completeAllTodayButton').disabled = !todaysAppointments.some(appointment =>
+                !['completed', 'cancelled'].includes(appointment.status)
+            );
+            document.getElementById('doctorTodayAppointmentCount').textContent = todaysAppointments.length;
+            document.getElementById('doctorPatientCount').textContent = patientRecords.length;
+            list.replaceChildren();
+            if (!todaysAppointments.length) {
+                list.innerHTML = '<p class="appointment-empty">No appointments booked for today.</p>';
+                return;
+            }
+
+            todaysAppointments.forEach(appointment => {
+                const patient = patientRecords.find(record => record.id === appointment.patient_id);
+                const row = document.createElement('div');
+                row.className = 'appointment-row';
+                const time = document.createElement('div');
+                time.className = 'appointment-time';
+                time.textContent = appointment.appointment_time || '—';
+                const info = document.createElement('div');
+                info.className = 'appointment-info';
+                const name = document.createElement('strong');
+                name.textContent = patient ? patient.name : `Patient ${appointment.patient_id}`;
+                const id = document.createElement('span');
+                id.className = 'patient-id';
+                id.textContent = `ID: ${appointment.patient_id}`;
+                const detail = document.createElement('small');
+                detail.textContent = `Token #${String(appointment.token_number || '—').padStart(3, '0')} · ${appointment.notes || 'Consultation'}`;
+                info.append(name, id, detail);
+                const status = document.createElement('div');
+                status.className = `appointment-status ${appointment.status || 'scheduled'}`;
+                status.textContent = (appointment.status || 'scheduled').replaceAll('_', ' ');
+                const viewButton = document.createElement('button');
+                viewButton.type = 'button';
+                viewButton.className = 'btn-small';
+                viewButton.textContent = 'View';
+                viewButton.addEventListener('click', () => selectDoctorAppointment(appointment));
+                const checkButton = document.createElement('button');
+                checkButton.type = 'button';
+                checkButton.className = 'btn-small appointment-check-button';
+                const appointmentFinished = ['completed', 'cancelled'].includes(appointment.status);
+                checkButton.textContent = appointment.status === 'ongoing'
+                    ? 'Complete visit' : appointment.status === 'completed' ? 'Completed' : 'Check patient';
+                checkButton.disabled = appointmentFinished;
+                checkButton.addEventListener('click', () => appointment.status === 'ongoing'
+                    ? completeDoctorAppointment(appointment) : checkDoctorAppointment(appointment));
+                row.append(time, info, status, viewButton, checkButton);
+                list.append(row);
+            });
+        }
+
+        async function selectDoctorAppointment(appointment) {
+            const patient = await API.getPatient(appointment.patient_id);
+            if (patient) fillPatientInfo(patient);
+            selectedOngoingAppointmentId = appointment.status === 'ongoing' ? String(appointment.id) : '';
+            syncCancelPatientAppointmentButton();
+            document.getElementById('appointmentActionMessage').textContent =
+                `Token #${String(appointment.token_number || '—').padStart(3, '0')} · ${(appointment.status || 'scheduled').replaceAll('_', ' ')}.`;
+            document.getElementById('patient-details').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function syncCancelPatientAppointmentButton() {
+            const button = document.getElementById('cancelPatientAppointment');
+            const ongoingAppointments = doctorAppointments.filter(appointment =>
+                appointment.patient_id === selectedPatientId && appointment.status === 'ongoing'
+            );
+            const selectedAppointment = ongoingAppointments.find(
+                appointment => String(appointment.id) === selectedOngoingAppointmentId
+            );
+            if (selectedAppointment) {
+                button.disabled = false;
+                return;
+            }
+
+            selectedOngoingAppointmentId = ongoingAppointments.length === 1
+                ? String(ongoingAppointments[0].id)
+                : '';
+            button.disabled = !selectedOngoingAppointmentId;
+            button.title = ongoingAppointments.length > 1
+                ? 'Select the ongoing appointment from today’s schedule first.'
+                : '';
+        }
+
+        async function cancelSelectedPatientAppointment() {
+            const appointment = doctorAppointments.find(item =>
+                String(item.id) === selectedOngoingAppointmentId
+                && item.patient_id === selectedPatientId
+                && item.status === 'ongoing'
+            );
+            if (!appointment) {
+                syncCancelPatientAppointmentButton();
+                return;
+            }
+            const patient = patientRecords.find(record => record.id === selectedPatientId);
+            const token = `#${String(appointment.token_number || '—').padStart(3, '0')}`;
+            if (!window.confirm(`Cancel ongoing appointment ${token} for ${patient?.name || selectedPatientId}?`)) return;
+
+            const button = document.getElementById('cancelPatientAppointment');
+            button.disabled = true;
+            try {
+                const updated = await API.updateAppointmentStatus(
+                    appointment.id,
+                    'cancelled',
+                    { doctor_id: doctorIdentifier }
+                );
+                if (!updated) {
+                    document.getElementById('patientInfoMessage').textContent =
+                        'Could not cancel this ongoing appointment. Refresh and try again.';
+                    return;
+                }
+                selectedOngoingAppointmentId = '';
+                document.getElementById('patientInfoMessage').textContent = `Ongoing appointment ${token} cancelled.`;
+                await Promise.all([loadDoctorAppointments(), loadNotifications()]);
+            } catch (error) {
+                console.error('Could not cancel ongoing appointment:', error);
+                document.getElementById('patientInfoMessage').textContent =
+                    error.message || 'Could not cancel this ongoing appointment. Refresh and try again.';
+            } finally {
+                syncCancelPatientAppointmentButton();
+            }
+        }
+
+        document.getElementById('cancelPatientAppointment')
+            .addEventListener('click', cancelSelectedPatientAppointment);
+
+        async function registerAppointmentAttendance(appointment) {
+            const date = appointment.appointment_date;
+            const attendance = await API.getAttendance(doctorIdentifier, date);
+            if (attendance.some(record => record.patient_id === appointment.patient_id)) return true;
+            return API.addAttendance({
+                doctor_id: doctorIdentifier,
+                patient_id: appointment.patient_id,
+                check_in_time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                check_out_time: null,
+                duration_minutes: 0,
+                date
+            });
+        }
+
+        async function checkDoctorAppointment(appointment) {
+            const updated = await API.updateAppointmentStatus(appointment.id, 'ongoing', { doctor_id: doctorIdentifier });
+            if (!updated) {
+                document.getElementById('appointmentActionMessage').textContent = 'Could not check in this appointment. Refresh and try again.';
+                return;
+            }
+            await selectDoctorAppointment(updated);
+            document.getElementById('appointmentActionMessage').textContent = `Token #${String(updated.token_number).padStart(3, '0')} is now being seen.`;
+            if (!await registerAppointmentAttendance(updated)) {
+                document.getElementById('appointmentActionMessage').textContent += ' Attendance could not be recorded.';
+            }
+            await Promise.all([loadDoctorAppointments(), loadNotifications()]);
+        }
+
+        async function completeDoctorAppointment(appointment) {
+            const updated = await API.updateAppointmentStatus(appointment.id, 'completed', { doctor_id: doctorIdentifier });
+            if (!updated) {
+                document.getElementById('appointmentActionMessage').textContent = 'Could not complete this visit. Refresh and try again.';
+                return;
+            }
+            document.getElementById('appointmentActionMessage').textContent =
+                `Token #${String(updated.token_number).padStart(3, '0')} completed. Add or edit the visit summary from Patients List.`;
+            await Promise.all([loadDoctorAppointments(), loadNotifications()]);
+            if (!document.getElementById('patientVisitsModal').hidden
+                && document.getElementById('patientVisitsModal').dataset.patientId === updated.patient_id) {
+                await openPatientVisits(updated.patient_id);
+            }
+        }
+
+        document.getElementById('completeTodayForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const pinInput = form.elements.pin;
+            const submitButton = form.querySelector('[type="submit"]');
+            const status = document.getElementById('completeTodayStatus');
+            submitButton.disabled = true;
+            status.textContent = 'Verifying PIN and completing appointments...';
+            try {
+                const completedCount = await API.completeTodaysAppointments(
+                    doctorIdentifier,
+                    todayStamp(),
+                    pinInput.value
+                );
+                closeCompleteTodayConfirmation();
+                showVisitSaveToast(
+                    completedCount
+                        ? `${completedCount} appointment(s) completed. Have a good day, thank you!`
+                        : 'No active appointments remained to complete.'
+                );
+                await loadDoctorAppointments();
+                loadNotifications().catch(error => console.error('Could not refresh notifications:', error));
+            } catch (error) {
+                console.error('Could not complete today appointments:', error);
+                status.textContent = error.message || 'Could not complete today appointments. Try again.';
+            } finally {
+                pinInput.value = '';
+                submitButton.disabled = false;
+            }
+        });
+
+        function openPatientDetail(patientId) {
+            const modal = document.getElementById('patientDetailModal');
+            document.getElementById('patientName').textContent = patientId === 'P100245' ? 'Sanath Deo' : 'Patient Name';
+            document.getElementById('patientID').textContent = patientId;
+            modal.hidden = false;
+        }
+
+        function closePatientDetail() {
+            document.getElementById('patientDetailModal').hidden = true;
+        }
+
+        let patientRecords = [];
+        let patientIndex = 0;
+        let selectedPatientId = '';
+        let selectedOngoingAppointmentId = '';
+
+        function renderPatientList() {
+            const table = document.getElementById('patientsTable');
+            const search = document.getElementById('patientListSearch').value.trim().toLowerCase();
+            const matches = patientRecords.filter(patient =>
+                [patient.name, patient.id, patient.phone].some(value =>
+                    String(value || '').toLowerCase().includes(search)
+                )
+            );
+            table.replaceChildren();
+            const header = document.createElement('div');
+            header.className = 'table-header';
+            ['Patient Name', 'ID', 'Contact', 'Age', 'Status', 'Action'].forEach(label => {
+                const cell = document.createElement('div');
+                cell.textContent = label;
+                header.append(cell);
+            });
+            table.append(header);
+            if (!matches.length) {
+                const empty = document.createElement('p');
+                empty.className = 'appointment-empty';
+                empty.textContent = patientRecords.length ? 'No patients match your search.' : 'No patients are registered yet.';
+                table.append(empty);
+                return;
+            }
+
+            matches.forEach(patient => {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                [patient.name || 'Patient', patient.id || '—', patient.phone || '—', patient.age ?? '—', 'Registered']
+                    .forEach(value => {
+                        const cell = document.createElement('div');
+                        cell.textContent = String(value);
+                        row.append(cell);
+                    });
+                const actionCell = document.createElement('div');
+                actionCell.className = 'patient-list-row-actions';
+                const selectButton = document.createElement('button');
+                selectButton.type = 'button';
+                selectButton.className = 'btn-small';
+                selectButton.textContent = 'Select';
+                selectButton.addEventListener('click', () => {
+                    patientIndex = patientRecords.findIndex(item => item.id === patient.id);
+                    fillPatientInfo(patient);
+                    closePatientList();
+                    document.getElementById('patient-details').scrollIntoView({ behavior: 'smooth' });
+                });
+                const visitsButton = document.createElement('button');
+                visitsButton.type = 'button';
+                visitsButton.className = 'btn-small';
+                visitsButton.textContent = 'Visits';
+                visitsButton.setAttribute('aria-label', `Completed visits for ${patient.name || patient.id}`);
+                visitsButton.addEventListener('click', () => openPatientVisits(patient.id));
+                actionCell.append(selectButton, visitsButton);
+                row.append(actionCell);
+                table.append(row);
+            });
+        }
+
+        document.getElementById('patientListSearch').addEventListener('input', renderPatientList);
+
+        async function openPatientVisits(patientId) {
+            const modal = document.getElementById('patientVisitsModal');
+            const visitsList = document.getElementById('completedVisitsList');
+            const patient = patientRecords.find(record => record.id === patientId);
+            modal.dataset.patientId = patientId;
+            document.getElementById('patientVisitsPatientName').textContent =
+                patient ? `${patient.name || 'Patient'} · ${patient.id}` : patientId;
+            visitsList.replaceChildren();
+            const loading = document.createElement('p');
+            loading.className = 'appointment-empty';
+            loading.textContent = 'Loading completed visits…';
+            visitsList.append(loading);
+            modal.hidden = false;
+
+            try {
+                const appointments = await API.getAppointmentsByPatient(patientId);
+                const completedVisits = appointments
+                    .filter(appointment => appointment.status === 'completed')
+                    .sort((first, second) => `${second.appointment_date} ${second.appointment_time}`
+                        .localeCompare(`${first.appointment_date} ${first.appointment_time}`));
+                visitsList.replaceChildren();
+                if (!completedVisits.length) {
+                    const empty = document.createElement('p');
+                    empty.className = 'appointment-empty';
+                    empty.textContent = 'No completed visits yet.';
+                    visitsList.append(empty);
+                    return;
+                }
+
+                completedVisits.forEach(appointment => {
+                    const card = document.createElement('article');
+                    card.className = 'completed-visit-card';
+                    const heading = document.createElement('div');
+                    heading.className = 'completed-visit-heading';
+                    const date = document.createElement('strong');
+                    const parsedDate = new Date(`${appointment.appointment_date}T00:00:00`);
+                    date.textContent = Number.isNaN(parsedDate.getTime())
+                        ? appointment.appointment_date || 'Visit'
+                        : parsedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                    const token = document.createElement('span');
+                    token.textContent = `Token #${String(appointment.token_number || '—').padStart(3, '0')}`;
+                    heading.append(date, token);
+                    const visitDetails = document.createElement('p');
+                    visitDetails.className = 'completed-visit-details';
+                    visitDetails.textContent = `${appointment.appointment_time || 'Time not recorded'} · ${appointment.notes || 'Consultation'}`;
+                    const form = document.createElement('form');
+                    form.className = 'completed-visit-form';
+                    form.dataset.appointmentId = String(appointment.id);
+                    const notesLabel = document.createElement('label');
+                    notesLabel.textContent = 'Visit summary';
+                    const notesInput = document.createElement('textarea');
+                    notesInput.name = 'visit_notes';
+                    notesInput.rows = 3;
+                    notesInput.maxLength = 10000;
+                    notesInput.placeholder = 'Add or edit the completed visit summary';
+                    notesInput.value = appointment.visit_notes || '';
+                    notesLabel.append(notesInput);
+                    const pinLabel = document.createElement('label');
+                    pinLabel.textContent = 'Doctor security PIN';
+                    const pinInput = document.createElement('input');
+                    pinInput.name = 'security_pin';
+                    pinInput.type = 'password';
+                    pinInput.inputMode = 'numeric';
+                    pinInput.autocomplete = 'off';
+                    pinInput.maxLength = 4;
+                    pinInput.pattern = '[0-9]{4}';
+                    pinInput.required = true;
+                    pinLabel.append(pinInput);
+                    const formFooter = document.createElement('div');
+                    formFooter.className = 'completed-visit-footer';
+                    const saveButton = document.createElement('button');
+                    saveButton.type = 'submit';
+                    saveButton.className = 'btn-small';
+                    saveButton.textContent = 'Save summary';
+                    const statusMessage = document.createElement('span');
+                    statusMessage.className = 'completed-visit-status';
+                    statusMessage.setAttribute('role', 'status');
+                    formFooter.append(saveButton, statusMessage);
+                    form.append(notesLabel, pinLabel, formFooter);
+                    card.append(heading, visitDetails, form);
+                    visitsList.append(card);
+                });
+            } catch (error) {
+                console.error('Could not load completed patient visits:', error);
+                visitsList.replaceChildren();
+                const failure = document.createElement('p');
+                failure.className = 'appointment-empty';
+                failure.textContent = 'Could not load completed visits. Check your connection and try again.';
+                visitsList.append(failure);
+            }
+        }
+
+        document.getElementById('completedVisitsList').addEventListener('submit', async event => {
+            const form = event.target.closest('.completed-visit-form');
+            if (!form) return;
+            event.preventDefault();
+            const saveButton = form.querySelector('[type="submit"]');
+            const statusMessage = form.querySelector('.completed-visit-status');
+            const pinInput = form.elements.security_pin;
+            saveButton.disabled = true;
+            statusMessage.textContent = 'Saving…';
+            try {
+                const updatedAppointment = await API.updateCompletedVisitNotes(
+                    form.dataset.appointmentId,
+                    doctorIdentifier,
+                    form.elements.visit_notes.value,
+                    pinInput.value
+                );
+                closePatientVisits();
+                showVisitSaveToast('Visit summary saved. Have a good day, thank you!');
+            } catch (error) {
+                console.error('Could not save completed visit summary:', error);
+                statusMessage.textContent = error.message || 'Could not save summary. Try again.';
+            } finally {
+                pinInput.value = '';
+                saveButton.disabled = false;
+            }
+        });
+
+        function fillPatientInfo(patient) {
+            selectedPatientId = patient.id || '';
+            selectedOngoingAppointmentId = '';
+            document.getElementById('patientInfoId').textContent = patient.id || '-';
+            document.getElementById('patientInfoDisplayName').textContent = patient.name || 'Patient';
+            document.getElementById('patientInfoDisplayAge').textContent =
+                patient.age !== undefined && patient.age !== null && patient.age !== '' ? `${patient.age} years` : '—';
+            document.getElementById('patientInfoDisplayGender').textContent = patient.gender || '—';
+            document.getElementById('patientInfoDisplayPhone').textContent = patient.phone || '—';
+            document.getElementById('patientInfoHistorySummary').textContent =
+                patient.medical_history || 'No medical history recorded.';
+            document.getElementById('patientAvatar').textContent = (patient.name || 'P')
+                .trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+            document.querySelectorAll('.clinical-patient-name').forEach(element => {
+                element.textContent = patient.name || patient.id || 'Selected patient';
+            });
+            syncCancelPatientAppointmentButton();
+        }
+
+        async function loadPatientRecords() {
+            patientRecords = await API.getPatients();
+            const currentId = document.getElementById('patientInfoId').textContent.trim();
+            patientIndex = Math.max(0, patientRecords.findIndex(patient => patient.id === currentId));
+            if (patientRecords.length) fillPatientInfo(patientRecords[patientIndex]);
+            renderPatientList();
+        }
+
+        document.getElementById('nextPatient').addEventListener('click', () => {
+            if (!patientRecords.length) return;
+            patientIndex = (patientIndex + 1) % patientRecords.length;
+            fillPatientInfo(patientRecords[patientIndex]);
+            document.getElementById('patientInfoMessage').textContent = `Showing patient ${patientIndex + 1} of ${patientRecords.length}.`;
+        });
+
+        loadPatientRecords().then(loadDoctorAppointments);
+
+        function openNewPrescription() {
+            if (!selectedPatientId) {
+                document.getElementById('patientInfoMessage').textContent = 'Select a patient before adding a prescription.';
+                return;
+            }
+            document.getElementById('prescriptionForm').reset();
+            document.getElementById('prescriptionFormStatus').textContent = '';
+            document.getElementById('prescriptionModal').hidden = false;
+            document.getElementById('prescriptionMedicine').focus();
+        }
+
+        function openNewReport() {
+            if (!selectedPatientId) {
+                document.getElementById('patientInfoMessage').textContent = 'Select a patient before adding a lab report.';
+                return;
+            }
+            document.getElementById('reportForm').reset();
+            document.getElementById('reportFormStatus').textContent = '';
+            document.getElementById('reportModal').hidden = false;
+            document.getElementById('reportType').focus();
+        }
+
+        function closeClinicalModal(modalId) {
+            document.getElementById(modalId).hidden = true;
+        }
+
+        document.getElementById('prescriptionForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const submitButton = event.currentTarget.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            document.getElementById('prescriptionFormStatus').textContent = 'Saving prescription…';
+            try {
+                const success = await API.addPrescription({
+                    doctor_id: doctorIdentifier,
+                    patient_id: selectedPatientId,
+                    medicine_name: document.getElementById('prescriptionMedicine').value.trim(),
+                    dosage: document.getElementById('prescriptionDosage').value.trim(),
+                    frequency: document.getElementById('prescriptionFrequency').value.trim(),
+                    duration: document.getElementById('prescriptionDuration').value.trim()
+                });
+                document.getElementById('prescriptionFormStatus').textContent = success
+                    ? 'Prescription saved for this patient.'
+                    : 'Prescription could not be saved. Check your connection and try again.';
+                if (success) {
+                    document.getElementById('patientInfoMessage').textContent = 'Prescription saved to the selected patient’s dashboard.';
+                    closeClinicalModal('prescriptionModal');
+                }
+            } catch (error) {
+                console.error('Could not save prescription:', error);
+                document.getElementById('prescriptionFormStatus').textContent = 'Unable to save prescription. Check your connection and try again.';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        document.getElementById('reportForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const submitButton = event.currentTarget.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            document.getElementById('reportFormStatus').textContent = 'Saving report…';
+            try {
+                const success = await API.addLabReport({
+                    doctor_id: doctorIdentifier,
+                    patient_id: selectedPatientId,
+                    report_type: document.getElementById('reportType').value.trim(),
+                    report_data: document.getElementById('reportData').value.trim()
+                });
+                document.getElementById('reportFormStatus').textContent = success
+                    ? 'Report saved for this patient.'
+                    : 'Report could not be saved. Check your connection and try again.';
+                if (success) {
+                    document.getElementById('patientInfoMessage').textContent = 'Lab report saved to the selected patient’s dashboard.';
+                    closeClinicalModal('reportModal');
+                }
+            } catch (error) {
+                console.error('Could not save lab report:', error);
+                document.getElementById('reportFormStatus').textContent = 'Unable to save report. Check your connection and try again.';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        function openPendingReports() {
+            alert('Open pending reports - Integration with backend required');
+        }
+
+        // Close modal on background click
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('patientDetailModal');
+            if (e.target === modal) {
+                closePatientDetail();
+            }
+        });
+    </script>
+</body>
+</html>

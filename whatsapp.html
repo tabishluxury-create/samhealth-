@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111b21">
+    <title>WhatsApp — Saman Health</title>
+    <link rel="stylesheet" href="whatsapp.css">
+    <script src="api.js"></script>
+</head>
+<body>
+    <main class="app-shell" aria-label="WhatsApp Web chat interface">
+        <aside class="sidebar" aria-label="Chats">
+            <header class="sidebar-header">
+                <a class="brand" href="#" aria-label="WhatsApp home">
+                    <span class="brand-icon" aria-hidden="true">◔</span>
+                    <span>WhatsApp</span>
+                </a>
+                <div class="header-actions" aria-label="Chat actions">
+                    <button class="icon-button" type="button" aria-label="New chat">＋</button>
+                    <button class="icon-button more-button" type="button" aria-label="More options">⋮</button>
+                </div>
+            </header>
+
+            <div class="search-wrap">
+                <label class="search-box">
+                    <span aria-hidden="true">⌕</span>
+                    <input type="search" placeholder="Search or start a new chat" aria-label="Search chats">
+                    <span class="search-filter" aria-hidden="true">☷</span>
+                </label>
+            </div>
+
+            <section class="chat-list" id="chatList" aria-label="Recent conversations" aria-live="polite"></section>
+
+            <footer class="sidebar-footer">
+                <span class="lock-icon" aria-hidden="true">▣</span>
+                <span>Password recovery support</span>
+            </footer>
+        </aside>
+
+        <section class="conversation" aria-label="Selected conversation">
+            <header class="conversation-header">
+                <div class="contact-summary">
+                    <div class="avatar avatar-saman" id="contactAvatar" aria-hidden="true">+</div>
+                    <div>
+                        <h1 id="contactName">Saman Health</h1>
+                        <p id="contactInfo">Account support</p>
+                    </div>
+                </div>
+                <div class="conversation-actions">
+                    <button class="icon-button call-button" type="button" aria-label="Video call">▣</button>
+                    <button class="icon-button" type="button" aria-label="Search in conversation">⌕</button>
+                    <button class="icon-button more-button" type="button" aria-label="More options">⋮</button>
+                </div>
+            </header>
+
+            <div class="pinned-banner">
+                <span class="pinned-icon" aria-hidden="true">⌖</span>
+                <div><small>Local message preview</small><p>Messages are simulated here, not sent to a real WhatsApp account.</p></div>
+            </div>
+
+            <div class="messages" aria-label="Messages" aria-live="polite">
+                <div class="date-divider"><span>Today</span></div>
+                <p class="inbox-empty" id="inboxEmpty">No password recovery messages yet. Request a code to see it here.</p>
+                <div id="inboxMessages"></div>
+                <p class="inbox-status" id="inboxStatus" role="status" hidden></p>
+            </div>
+
+            <form class="composer" aria-label="Message composer" onsubmit="return false">
+                <button class="composer-icon" type="button" aria-label="Attachments unavailable" disabled>＋</button>
+                <button class="composer-icon emoji-button" type="button" aria-label="Emoji unavailable" disabled>☺</button>
+                <label class="message-input">
+                    <span class="visually-hidden">Type a message</span>
+                    <input type="text" placeholder="This inbox is read-only" disabled>
+                </label>
+                <button class="send-button" type="button" aria-label="Sending unavailable" disabled>➤</button>
+            </form>
+        </section>
+    </main>
+    <script>
+        const backendBase = API.backendBaseUrl;
+        const inboxMessages = document.getElementById('inboxMessages');
+        const inboxEmpty = document.getElementById('inboxEmpty');
+        const inboxStatus = document.getElementById('inboxStatus');
+        const chatList = document.getElementById('chatList');
+        const contactAvatar = document.getElementById('contactAvatar');
+        const contactName = document.getElementById('contactName');
+        const contactInfo = document.getElementById('contactInfo');
+        const conversationPane = document.querySelector('.messages');
+        const searchInput = document.querySelector('input[aria-label="Search chats"]');
+        const samanConversation = {
+            conversation_id: 'saman-health',
+            contact_name: 'Saman Health',
+            phone: '',
+            messages: [],
+            last_message: 'Password recovery updates appear here',
+            last_time: ''
+        };
+        let conversations = [samanConversation];
+        let selectedConversationId = 'saman-health';
+        let lastRenderedConversations = '';
+
+        function selectedConversation() {
+            return conversations.find(item => item.conversation_id === selectedConversationId) || samanConversation;
+        }
+
+        function makeChatItem(conversation) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'chat-item';
+            button.classList.toggle('active', conversation.conversation_id === selectedConversationId);
+            button.dataset.conversationId = conversation.conversation_id;
+            button.setAttribute('aria-pressed', String(conversation.conversation_id === selectedConversationId));
+
+            const avatar = document.createElement('span');
+            avatar.className = `avatar ${conversation.conversation_id === 'saman-health' ? 'avatar-saman' : 'avatar-patient'}`;
+            avatar.textContent = conversation.conversation_id === 'saman-health'
+                ? '+'
+                : (conversation.contact_name || 'P').trim().charAt(0).toUpperCase();
+            avatar.setAttribute('aria-hidden', 'true');
+
+            const copy = document.createElement('span');
+            copy.className = 'chat-copy';
+            const heading = document.createElement('span');
+            heading.className = 'chat-heading';
+            const name = document.createElement('strong');
+            name.textContent = conversation.contact_name || 'Patient';
+            const time = document.createElement('time');
+            time.textContent = conversation.last_time || '';
+            heading.append(name, time);
+            const preview = document.createElement('span');
+            preview.className = 'chat-preview';
+            const previewText = document.createElement('span');
+            previewText.textContent = conversation.last_message || 'No messages yet';
+            preview.append(previewText);
+            copy.append(heading, preview);
+            button.append(avatar, copy);
+            button.addEventListener('click', () => {
+                selectedConversationId = conversation.conversation_id;
+                renderConversations();
+                renderSelectedConversation();
+            });
+            return button;
+        }
+
+        function renderConversations() {
+            const search = searchInput.value.trim().toLocaleLowerCase();
+            chatList.replaceChildren();
+            conversations
+                .filter(conversation => (conversation.contact_name || '').toLocaleLowerCase().includes(search))
+                .forEach(conversation => chatList.append(makeChatItem(conversation)));
+        }
+
+        function renderSelectedConversation() {
+            const conversation = selectedConversation();
+            const isSamanHealth = conversation.conversation_id === 'saman-health';
+            contactName.textContent = conversation.contact_name || 'Patient';
+            contactInfo.textContent = isSamanHealth ? 'Account support' : (conversation.phone || 'Patient updates');
+            contactAvatar.className = `avatar ${isSamanHealth ? 'avatar-saman' : 'avatar-patient'}`;
+            contactAvatar.textContent = isSamanHealth
+                ? '+'
+                : (conversation.contact_name || 'P').trim().charAt(0).toUpperCase();
+            inboxMessages.replaceChildren();
+            inboxEmpty.textContent = isSamanHealth
+                ? 'No password recovery messages yet. Request a code to see it here.'
+                : 'No updates in this conversation yet.';
+            const messages = conversation.messages || [];
+            inboxEmpty.hidden = messages.length > 0;
+            messages.forEach(message => {
+                const row = document.createElement('div');
+                row.className = `message-row ${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}`;
+                const bubble = document.createElement('div');
+                bubble.className = 'message-bubble';
+                const body = document.createElement('p');
+                body.textContent = message.body || '';
+                const time = document.createElement('time');
+                time.textContent = message.time || '';
+                bubble.append(body, time);
+                row.append(bubble);
+                inboxMessages.append(row);
+            });
+            if (inboxStatus.hidden) {
+                conversationPane.scrollTop = conversationPane.scrollHeight;
+            }
+        }
+
+        async function refreshInbox() {
+            try {
+                const response = await fetch(`${backendBase}/api/saman-health/inbox-messages`);
+                const result = await response.json();
+                if (!response.ok) {
+                    inboxStatus.textContent = result.message || 'The Saman Health inbox is unavailable.';
+                    inboxStatus.hidden = false;
+                    return;
+                }
+
+                inboxStatus.textContent = '';
+                inboxStatus.hidden = true;
+                const signature = JSON.stringify(result.conversations);
+                if (signature === lastRenderedConversations) return;
+                lastRenderedConversations = signature;
+                const receivedConversations = result.conversations || [];
+                const samanUpdates = receivedConversations.find(item => item.conversation_id === 'saman-health');
+                conversations = [
+                    samanUpdates || samanConversation,
+                    ...receivedConversations.filter(item => item.conversation_id !== 'saman-health')
+                ];
+                if (!conversations.some(item => item.conversation_id === selectedConversationId)) {
+                    selectedConversationId = 'saman-health';
+                }
+                renderConversations();
+                renderSelectedConversation();
+            } catch {
+                inboxStatus.textContent = 'Start the local Saman Health service to connect this inbox.';
+                inboxStatus.hidden = false;
+            }
+        }
+
+        searchInput.addEventListener('input', renderConversations);
+        renderConversations();
+        renderSelectedConversation();
+        refreshInbox();
+        setInterval(refreshInbox, 2500);
+    </script>
+</body>
+</html>

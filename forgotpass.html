@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Saman Healthcare | Forgot Password</title>
+	<script src="theme.js"></script>
+	<link rel="stylesheet" href="forgotpass.css">
+	<link rel="stylesheet" href="site-motion.css?v=20261005">
+	<script src="api.js"></script>
+</head>
+
+<body>
+	<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode">
+		<span class="theme-toggle-label">Dark mode</span>
+	</button>
+	<!-- The reset shell keeps the forgot-password page visually consistent with Login. -->
+	<main class="reset-shell">
+		<!-- The blue panel carries the same brand and welcome message as Login. -->
+		<section class="reset-welcome" aria-label="Saman Healthcare">
+			<div class="brand"><span class="brand-mark" aria-hidden="true">+</span> <span class="brand-text">Saman
+					Healthcare</span></div>
+			<div class="welcome-copy">
+				<p class="eyebrow">ACCOUNT RECOVERY</p>
+				<h1>Get back to your care.</h1>
+				<p>Verify your WhatsApp number and create a new password securely.</p>
+			</div>
+			<svg class="reset-cartoon" viewBox="0 0 220 240" aria-hidden="true">
+				<circle cx="110" cy="58" r="34" fill="#ffd0bf" />
+				<path d="M76 60c2-43 67-50 71-4-21-17-46-17-71 4Z" fill="#18246b" />
+				<path d="M58 112c25-22 79-22 104 0l20 104H38Z" fill="#fff" stroke="#58d9cf" stroke-width="6" />
+				<path d="M110 112v104M76 126l34 38 34-38" fill="none" stroke="#58d9cf" stroke-width="6" />
+				<path d="M70 216l-10 18m90-18 10 18" stroke="#58d9cf" stroke-width="16" stroke-linecap="round" />
+				<path d="M49 238h38m46 0h38" stroke="#fff" stroke-width="11" stroke-linecap="round" />
+				<path d="M153 124c19 13 28 32 31 55" fill="none" stroke="#ffd0bf" stroke-width="14"
+					stroke-linecap="round" />
+				<circle cx="187" cy="183" r="10" fill="#ffd46b" stroke="#1842d2" stroke-width="4" />
+				<circle cx="187" cy="183" r="3" fill="#fff" />
+				<path d="M196 183h19m-6 0v8m6-8v6" fill="none" stroke="#ffd46b" stroke-width="7" stroke-linecap="round"
+					stroke-linejoin="round" />
+			</svg>
+		</section>
+
+		<section class="reset-panel">
+			<div class="reset-card">
+				<h2>Forgot password?</h2>
+				<p class="intro-text">We’ll send a one-time code to the WhatsApp number registered to your account.</p>
+
+				<form id="requestForm">
+					<div class="role-switch" id="roleSwitch" role="group" aria-label="Account type">
+						<button class="active" id="patientRole" type="button" aria-pressed="true">Patient</button>
+						<button id="doctorRole" type="button" aria-pressed="false">Doctor</button>
+					</div>
+					<div class="field">
+						<label for="identifier">Patient phone number or ID</label>
+						<input id="identifier" type="text" placeholder="Enter your phone number or ID" required>
+					</div>
+					<div class="field" id="otpField" hidden>
+						<label for="otp">WhatsApp verification code</label>
+						<input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter the 6-digit code">
+					</div>
+					<button class="primary-button" id="submitButton" type="submit">Send WhatsApp code</button>
+				</form>
+				<div class="otp-actions" id="otpActions" hidden>
+					<button class="text-button" id="resendButton" type="button">Send a new code</button>
+					<button class="text-button" id="changeAccountButton" type="button">Change account</button>
+				</div>
+
+				<p class="inbox-link" id="localInboxLink" hidden>
+					<a href="whatsapp.html#saman-health" target="_blank" rel="noopener">Open Saman Health inbox</a>
+				</p>
+				<p class="status" id="status" role="status"></p>
+				<p class="back-link"><a href="loginround2.html">Back to login</a></p>
+			</div>
+		</section>
+	</main>
+
+	<script>
+		let selectedRole = 'patient';
+		const patientRole = document.getElementById('patientRole');
+		const doctorRole = document.getElementById('doctorRole');
+		const roleSwitch = document.getElementById('roleSwitch');
+		const requestForm = document.getElementById('requestForm');
+		const identifier = document.getElementById('identifier');
+		const otpField = document.getElementById('otpField');
+		const otpInput = document.getElementById('otp');
+		const submitButton = document.getElementById('submitButton');
+		const otpActions = document.getElementById('otpActions');
+		const resendButton = document.getElementById('resendButton');
+		const changeAccountButton = document.getElementById('changeAccountButton');
+		const localInboxLink = document.getElementById('localInboxLink');
+		const status = document.getElementById('status');
+		const backendBase = API.backendBaseUrl;
+		let challengeId = null;
+		let resendTimer = null;
+
+		function setRole(role) {
+			selectedRole = role;
+			const isDoctor = role === 'doctor';
+			patientRole.classList.toggle('active', !isDoctor);
+			doctorRole.classList.toggle('active', isDoctor);
+			patientRole.setAttribute('aria-pressed', String(!isDoctor));
+			doctorRole.setAttribute('aria-pressed', String(isDoctor));
+			identifier.previousElementSibling.textContent = `${isDoctor ? 'Doctor' : 'Patient'} phone number or ID`;
+			identifier.placeholder = `Enter your ${isDoctor ? 'doctor' : 'patient'} phone number or ID`;
+		}
+
+		patientRole.addEventListener('click', () => setRole('patient'));
+		doctorRole.addEventListener('click', () => setRole('doctor'));
+
+		requestForm.addEventListener('submit', async event => {
+			event.preventDefault();
+			if (!challengeId) {
+				await requestWhatsAppCode();
+				return;
+			}
+
+			status.textContent = 'Verifying your WhatsApp code...';
+			submitButton.disabled = true;
+			try {
+				const response = await fetch(`${backendBase}/api/forgot-password/verify`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ challenge_id: challengeId, otp: otpInput.value })
+				});
+				const result = await response.json();
+				status.textContent = result.message || 'Could not verify the code.';
+				if (response.ok) {
+					window.location.href = `resetpassword.html?token=${encodeURIComponent(result.reset_token)}`;
+				}
+			} catch (error) {
+				status.textContent = 'Cannot connect to the Python backend.';
+			} finally {
+				submitButton.disabled = false;
+			}
+		});
+
+		async function requestWhatsAppCode() {
+			status.textContent = 'Sending a verification code to WhatsApp...';
+			submitButton.disabled = true;
+			try {
+				const response = await fetch(`${backendBase}/api/forgot-password/request`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						role: selectedRole,
+						identifier: identifier.value
+					})
+				});
+				const result = await response.json();
+				status.textContent = result.message || 'Could not send the verification code.';
+				if (!response.ok) {
+					if (response.status === 429) setResendCooldown(result.retry_after_seconds || 30);
+					return;
+				}
+
+				challengeId = result.challenge_id;
+				roleSwitch.hidden = true;
+				identifier.parentElement.hidden = true;
+				identifier.required = false;
+				otpField.hidden = false;
+				otpInput.required = true;
+				otpActions.hidden = false;
+				submitButton.textContent = 'Verify code';
+				otpInput.value = '';
+				localInboxLink.hidden = result.delivery_mode !== 'local_preview';
+				setResendCooldown(30);
+				otpInput.focus();
+			} catch (error) {
+				status.textContent = 'Cannot connect to the Python backend.';
+			} finally {
+				submitButton.disabled = false;
+			}
+		}
+
+		function setResendCooldown(seconds) {
+			clearInterval(resendTimer);
+			let remaining = Math.max(0, seconds);
+			resendButton.disabled = remaining > 0;
+			resendButton.textContent = remaining ? `Send a new code in ${remaining}s` : 'Send a new code';
+			if (!remaining) return;
+
+			resendTimer = setInterval(() => {
+				remaining -= 1;
+				resendButton.textContent = remaining ? `Send a new code in ${remaining}s` : 'Send a new code';
+				resendButton.disabled = remaining > 0;
+				if (!remaining) clearInterval(resendTimer);
+			}, 1000);
+		}
+
+		resendButton.addEventListener('click', requestWhatsAppCode);
+		changeAccountButton.addEventListener('click', () => {
+			clearInterval(resendTimer);
+			challengeId = null;
+			roleSwitch.hidden = false;
+			identifier.parentElement.hidden = false;
+			identifier.required = true;
+			otpField.hidden = true;
+			otpActions.hidden = true;
+			localInboxLink.hidden = true;
+			otpInput.required = false;
+			resendButton.disabled = false;
+			resendButton.textContent = 'Send a new code';
+			submitButton.textContent = 'Send WhatsApp code';
+			status.textContent = '';
+			identifier.focus();
+		});
+	</script>
+</body>
+
+</html>

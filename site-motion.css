@@ -1,0 +1,431 @@
+html {
+    scroll-behavior: smooth;
+}
+
+.dashboard-shell,
+.auth-shell,
+.registration-shell,
+.reset-shell {
+    animation: site-shell-arrive .8s cubic-bezier(.2, .7, .25, 1) both;
+}
+
+.welcome-panel::before,
+.reset-welcome::before,
+.information-panel::before,
+.welcome-hero::before,
+.welcome-hero::after {
+    animation: site-orbit-breathe 9s ease-in-out infinite alternate;
+    transform-origin: center;
+}
+
+.welcome-panel::after,
+.reset-welcome::after {
+    animation: site-orbit-breathe 12s 1.2s ease-in-out infinite alternate-reverse;
+    transform-origin: center;
+}
+
+.hero-art svg,
+.medical-illustration,
+.hospital-illustration,
+.patient-illustration,
+.stethoscope-illustration,
+.reset-cartoon {
+    animation: site-art-float 6s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.hero-art svg { animation-duration: 5s; }
+.patient-illustration,
+.stethoscope-illustration { animation-delay: -2s; }
+.reset-cartoon { animation-delay: -1.5s; }
+
+.dashboard-shell .metric {
+    animation: site-card-arrive .65s both;
+}
+
+.dashboard-shell .metric:nth-child(2) { animation-delay: .08s; }
+.dashboard-shell .metric:nth-child(3) { animation-delay: .15s; }
+.dashboard-shell .metric:nth-child(4) { animation-delay: .22s; }
+
+.dashboard-shell .panel,
+.dashboard-shell .current-appointment-banner,
+.dashboard-shell .patient-details,
+.dashboard-shell .care-panel,
+.registration-shell .service-card {
+    animation: site-card-arrive .7s .12s both;
+}
+
+.registration-shell .service-card:last-of-type { animation-delay: .23s; }
+
+.auth-card,
+.form-panel,
+.reset-card {
+    animation: site-card-arrive .75s .16s both;
+}
+
+.service-card,
+.metric,
+.panel,
+.care-panel,
+.patient-details,
+.current-appointment-banner,
+.auth-card,
+.form-panel,
+.reset-card {
+    transition: transform .28s ease, box-shadow .28s ease;
+}
+
+.registration-shell .service-card:hover,
+.dashboard-shell .metric:hover,
+.dashboard-shell .panel:hover,
+.care-panel:hover,
+.patient-details:hover {
+    transform: translateY(-3px);
+}
+
+@keyframes site-shell-arrive {
+    from { opacity: 0; transform: translateY(18px) scale(.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes site-card-arrive {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes site-orbit-breathe {
+    from { opacity: .5; scale: .96; }
+    to { opacity: 1; scale: 1.04; }
+}
+
+@keyframes site-art-float {
+    0%, 100% { translate: 0 0; rotate: 0deg; }
+    50% { translate: 0 -8px; rotate: 1deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    .dashboard-shell,
+    .auth-shell,
+    .registration-shell,
+    .reset-shell,
+    .welcome-panel::before,
+    .welcome-panel::after,
+    .reset-welcome::before,
+    .reset-welcome::after,
+    .information-panel::before,
+    .welcome-hero::before,
+    .welcome-hero::after,
+    .hero-art svg,
+    .medical-illustration,
+    .hospital-illustration,
+    .patient-illustration,
+    .stethoscope-illustration,
+    .reset-cartoon,
+    .dashboard-shell .metric,
+    .dashboard-shell .panel,
+    .dashboard-shell .current-appointment-banner,
+    .dashboard-shell .patient-details,
+    .dashboard-shell .care-panel,
+    .registration-shell .service-card,
+    .auth-card,
+    .form-panel,
+    .reset-card {
+        animation: none !important;
+        will-change: auto;
+    }
+
+    .service-card,
+    .metric,
+    .panel,
+    .care-panel,
+    .patient-details,
+    .current-appointment-banner,
+    .auth-card,
+    .form-panel,
+    .reset-card {
+        transition: none;
+    }
+
+    .registration-shell .service-card:hover,
+    .dashboard-shell .metric:hover,
+    .dashboard-shell .panel:hover,
+    .care-panel:hover,
+    .patient-details:hover {
+        transform: none;
+    }
+}
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, .18);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 700;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, .8);
+    outline-offset: 2px;
+}
+
+.theme-toggle-label {
+    white-space: nowrap;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --theme-shell-bg: rgba(15, 23, 42, 0.74);
+    --theme-panel-bg: rgba(15, 23, 42, 0.9);
+    --theme-card-bg: rgba(15, 23, 42, 0.88);
+    --theme-card-strong: rgba(17, 24, 39, 0.98);
+    --theme-surface-soft: rgba(30, 41, 59, 0.78);
+    --theme-surface-strong: rgba(15, 118, 110, 0.28);
+    --theme-text: #edf6ff;
+    --theme-text-soft: #c2d1eb;
+    --theme-muted: #9bb1cb;
+    --theme-border: rgba(148, 163, 184, 0.32);
+    --theme-input-bg: rgba(15, 23, 42, 0.8);
+    --theme-button-color: #0f172a;
+}
+
+html[data-theme="dark"] body {
+    background: radial-gradient(circle at 12% 12%, rgba(34, 197, 94, 0.12), transparent 20%), radial-gradient(circle at 88% 86%, rgba(59, 130, 246, 0.2), transparent 26%), linear-gradient(135deg, #020817 0%, #0f172a 45%, #111827 100%);
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .auth-shell,
+html[data-theme="dark"] .registration-shell,
+html[data-theme="dark"] .reset-shell,
+html[data-theme="dark"] .dashboard-shell {
+    border-color: var(--theme-border);
+    background: var(--theme-shell-bg);
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.58);
+}
+
+html[data-theme="dark"] .welcome-panel,
+html[data-theme="dark"] .reset-welcome,
+html[data-theme="dark"] .information-panel,
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .workspace {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.18), rgba(30, 64, 175, 0.28));
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .form-panel,
+html[data-theme="dark"] .reset-panel,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .metric,
+html[data-theme="dark"] .care-panel,
+html[data-theme="dark"] .current-appointment-banner,
+html[data-theme="dark"] .notification-panel,
+html[data-theme="dark"] .patient-security-modal,
+html[data-theme="dark"] .booking-modal,
+html[data-theme="dark"] .account-modal-card {
+    background: var(--theme-panel-bg);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .form-card,
+html[data-theme="dark"] .reset-card,
+html[data-theme="dark"] .patient-details,
+html[data-theme="dark"] .service-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9));
+    border-color: var(--theme-border);
+    box-shadow: 0 20px 50px rgba(2, 6, 23, 0.58);
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .role-switch,
+html[data-theme="dark"] .role-switch button,
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field select,
+html[data-theme="dark"] .booking-modal select,
+html[data-theme="dark"] .booking-modal input,
+html[data-theme="dark"] .booking-modal textarea,
+html[data-theme="dark"] .patient-security-field input,
+html[data-theme="dark"] .patient-security-field select,
+html[data-theme="dark"] .profile-form input,
+html[data-theme="dark"] .surgery-doctor-form input,
+html[data-theme="dark"] .surgery-doctor-form select,
+html[data-theme="dark"] .surgery-doctor-form textarea,
+html[data-theme="dark"] .security-phone-label input,
+html[data-theme="dark"] .security-otp-label input,
+html[data-theme="dark"] .patient-list-modal .search-input {
+    background: var(--theme-input-bg);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+.has-password-visibility-toggle {
+    position: relative;
+}
+
+.password-visibility-toggle {
+    position: absolute;
+    right: 8px;
+    bottom: 12px;
+    z-index: 1;
+    min-width: 44px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 5px;
+    color: #1842d2;
+    background: rgba(255, 255, 255, .92);
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.password-visibility-toggle:focus-visible {
+    outline: 2px solid #1842d2;
+    outline-offset: 2px;
+}
+
+html[data-theme="dark"] .password-visibility-toggle {
+    color: #dbeafe;
+    background: #263755;
+}
+
+html[data-theme="dark"] .field input::placeholder,
+html[data-theme="dark"] .field select option,
+html[data-theme="dark"] .booking-modal select option,
+html[data-theme="dark"] .status,
+html[data-theme="dark"] .intro-text,
+html[data-theme="dark"] .welcome-copy p,
+html[data-theme="dark"] .service-card p,
+html[data-theme="dark"] .sidebar nav a,
+html[data-theme="dark"] .credentials,
+html[data-theme="dark"] .mutation-copy,
+html[data-theme="dark"] .appointment-info small,
+html[data-theme="dark"] .info-grid div,
+html[data-theme="dark"] .notification-item small,
+html[data-theme="dark"] .metric small,
+html[data-theme="dark"] .details-grid span,
+html[data-theme="dark"] .care-row small,
+html[data-theme="dark"] .topbar-tools button,
+html[data-theme="dark"] .account-modal-card > p,
+html[data-theme="dark"] .settings-popup-intro,
+html[data-theme="dark"] .profile-form label,
+html[data-theme="dark"] .security-toggle,
+html[data-theme="dark"] .security-phone-label,
+html[data-theme="dark"] .security-otp-label,
+html[data-theme="dark"] .patient-security-field,
+html[data-theme="dark"] .booking-modal label {
+    color: var(--theme-muted);
+}
+
+html[data-theme="dark"] .field label,
+html[data-theme="dark"] .auth-card h2,
+html[data-theme="dark"] .reset-card h2,
+html[data-theme="dark"] .form-card h2,
+html[data-theme="dark"] .topbar h2,
+html[data-theme="dark"] .metric strong,
+html[data-theme="dark"] .details-grid strong,
+html[data-theme="dark"] .care-row b,
+html[data-theme="dark"] .current-appointment-banner h3,
+html[data-theme="dark"] .booking-modal h2,
+html[data-theme="dark"] .patient-security-modal h2,
+html[data-theme="dark"] .account-modal-card h2,
+html[data-theme="dark"] .service-card h2,
+html[data-theme="dark"] .welcome-copy h1,
+html[data-theme="dark"] .brand-text,
+html[data-theme="dark"] .brand {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .primary-button,
+html[data-theme="dark"] .submit-button,
+html[data-theme="dark"] .modal-primary,
+html[data-theme="dark"] .booking-submit,
+html[data-theme="dark"] .payment-button,
+html[data-theme="dark"] .theme-toggle {
+    background: linear-gradient(135deg, #67e8f9 0%, #60a5fa 100%);
+    color: var(--theme-button-color);
+    border-color: rgba(103, 232, 249, 0.45);
+}
+
+html[data-theme="dark"] .role-switch button.active,
+html[data-theme="dark"] .primary-button:hover,
+html[data-theme="dark"] .submit-button:hover,
+html[data-theme="dark"] .booking-submit:hover,
+html[data-theme="dark"] .payment-button:hover {
+    box-shadow: 0 8px 18px rgba(96, 165, 250, 0.4);
+}
+
+html[data-theme="dark"] .sidebar nav a,
+html[data-theme="dark"] .sidebar nav a.sidebar-settings-link,
+html[data-theme="dark"] .sidebar nav a.active,
+html[data-theme="dark"] .sidebar nav a:hover,
+html[data-theme="dark"] .sidebar-settings-label,
+html[data-theme="dark"] .notification-button,
+html[data-theme="dark"] .bell-icon svg,
+html[data-theme="dark"] .theme-toggle svg {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .notification-button,
+html[data-theme="dark"] .theme-toggle {
+    border-color: var(--theme-border);
+    background: rgba(15, 23, 42, 0.72);
+}
+
+html[data-theme="dark"] .brand-mark,
+html[data-theme="dark"] .logo-cross,
+html[data-theme="dark"] .logo-pulse,
+html[data-theme="dark"] .welcome-panel::before,
+html[data-theme="dark"] .welcome-panel::after,
+html[data-theme="dark"] .reset-welcome::before,
+html[data-theme="dark"] .reset-welcome::after,
+html[data-theme="dark"] .information-panel::before {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(148, 163, 184, 0.05);
+}
+
+html[data-theme="dark"] .theme-toggle-label {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .auth-card a,
+html[data-theme="dark"] .form-row a,
+html[data-theme="dark"] .reset-card a,
+html[data-theme="dark"] .login-prompt a,
+html[data-theme="dark"] .back-link a,
+html[data-theme="dark"] .switch-copy a,
+html[data-theme="dark"] .account-modal-label,
+html[data-theme="dark"] .copy-detail,
+html[data-theme="dark"] .patient-id-badge,
+html[data-theme="dark"] .care-panel-heading > span,
+html[data-theme="dark"] .status,
+html[data-theme="dark"] .otp-status,
+html[data-theme="dark"] .login-detail strong {
+    color: #7dd3fc;
+}
+
+html[data-theme="dark"] .theme-toggle .theme-toggle-label {
+    color: var(--theme-text);
+}
+
+@media (max-width: 820px) {
+    .theme-toggle {
+        padding: 7px 10px;
+        font-size: .65rem;
+    }
+}

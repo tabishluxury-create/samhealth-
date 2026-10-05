@@ -1,0 +1,22 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+    margin: 0;
+    background:
+        radial-gradient(circle at 4% 8%, rgba(45, 212, 191, .22), transparent 27rem),
+        radial-gradient(circle at 96% 88%, rgba(59, 130, 246, .22), transparent 30rem),
+        radial-gradient(circle at 78% 10%, rgba(139, 92, 246, .12), transparent 25rem),
+        #070e19;
+}
+
+.landing-image {
+    display: block;
+    width: 100%;
+    max-width: 1376px;
+    height: auto;
+    margin: 0 auto;
+}
